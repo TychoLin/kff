@@ -74,45 +74,22 @@ class RecordModel {
 			$duplicate_clause = $sql_params["duplicate_clause"];
 			if (is_array($duplicate_clause) && count($duplicate_clause) > 0) {
 				array_push($sql, "ON DUPLICATE KEY UPDATE", implode(",", array_keys($duplicate_clause)));
+				$params = array_merge($params, array_values($duplicate_clause));
 			}
-
-			$params = array_merge(array_values($record), array_values($duplicate_clause));
 		}
 
-		$ps = $this->_dbHandler->prepare(implode(" ", $sql));
-		$ps->execute($params);
-		return $ps->rowCount();
+		return $this->execSQL(implode(" ", $sql), $params)->rowCount();
 	}
 
 	public function read($sql_params, $fetch_style = PDO::FETCH_ASSOC) {
-		$ps = $this->_dbHandler->prepare($sql_params["sql"]);
-		$ps->execute($sql_params["params"]);
-		return $ps->fetchAll($fetch_style);
-	}
-
-	public function generateReadSQL($sql_params) {
 		$params = array();
 
-		$fields = "*";
-		if (isset($sql_params["fields"])) {
-			$fields = $sql_params["fields"];
-			if (is_array($fields) && count($fields) > 0) {
-				$fields = implode(",", $fields);
-			}
-		}
+		$fields = implode(",", $sql_params["fields"]);
 
-		$table_reference = $this->_tableReference;
-		if (isset($sql_params["table_reference"])) {
-			if (is_array($sql_params["table_reference"])) {
-				if (isset($sql_params["table_reference"]["sql"])) {
-					$table_reference = $sql_params["table_reference"]["sql"];
-					$params = array_merge($params, $sql_params["table_reference"]["params"]);
-				} else {
-					$table_reference = implode(" ", $sql_params["table_reference"]);
-				}
-			} else {
-				$table_reference = $sql_params["table_reference"];
-			}
+		if (is_array($sql_params["table_reference"])) {
+			$table_reference = implode(" ", $sql_params["table_reference"]);
+		} else {
+			$table_reference = $sql_params["table_reference"];
 		}
 
 		$where_clause = "1 = 1";
@@ -124,7 +101,7 @@ class RecordModel {
 				foreach (array_values($where_cond) as $value) {
 					if (is_array($value)) {
 						$params = array_merge($params, $value);
-					} else {
+					} else if (!is_null($value)) {
 						array_push($params, $value);
 					}
 				}
@@ -132,13 +109,7 @@ class RecordModel {
 		}
 
 		$sql = array();
-		array_push($sql, "SELECT", $fields, "FROM");
-		if (isset($sql_params["sub_query_alias"])) {
-			array_push($sql, "($table_reference)", "AS", $sql_params["sub_query_alias"]);
-		} else {
-			array_push($sql, $table_reference);
-		}
-		array_push($sql, "WHERE", $where_clause);
+		array_push($sql, "SELECT", $fields, "FROM", $table_reference, "WHERE", $where_clause);
 
 		if (isset($sql_params["group_by_clause"])) {
 			array_push($sql, "GROUP BY", $sql_params["group_by_clause"]);
@@ -156,34 +127,43 @@ class RecordModel {
 			array_push($sql, "OFFSET", $sql_params["offset"]);
 		}
 
-		return array("sql" => implode(" ", $sql), "params" => $params);
+		$ps = $this->execSQL(implode(" ", $sql), $params);
+		return $ps->fetchAll($fetch_style);
 	}
 
-	public function update($record, $where_cond) {
+	public function update($sql_params) {
+		$table_reference = $sql_params["table_reference"];
+
 		$set_clause = $params = array();
-		foreach ($record as $key => $value) {
+		foreach ($sql_params["record"] as $key => $value) {
 			array_push($set_clause, "$key = ?");
 			array_push($params, $value);
 		}
 		$set_clause = implode(',', $set_clause);
 
 		$where_clause = "1 = 1";
-		if (is_array($where_cond) && count($where_cond) > 0) {
-			$where_clause = implode(" AND ", array_keys($where_cond));
-			$params = array_merge($params, array_values($where_cond));
+		if (isset($sql_params["where_cond"])) {
+			$where_cond = $sql_params["where_cond"];
+			if (is_array($where_cond) && count($where_cond) > 0) {
+				$where_clause = implode(" AND ", array_keys($where_cond));
+				
+				foreach (array_values($where_cond) as $value) {
+					if (is_array($value)) {
+						$params = array_merge($params, $value);
+					} else if (!is_null($value)) {
+						array_push($params, $value);
+					}
+				}
+			}
 		}
 
 		$sql = array();
-		array_push($sql, "UPDATE", $this->_tableReference, "SET", $set_clause, "WHERE", $where_clause);
+		array_push($sql, "UPDATE", $table_reference, "SET", $set_clause, "WHERE", $where_clause);
 
-		$ps = $this->_dbHandler->prepare(implode(" ", $sql));
-		$ps->execute($params);
-		return $ps->rowCount();
+		return $this->execSQL(implode(" ", $sql), $params)->rowCount();
 	}
 
 	public function delete($sql_params) {
-		$params = array();
-
 		$table_names = "";
 		if (isset($sql_params["table_names"])) {
 			$table_names = $sql_params["table_names"];
@@ -192,15 +172,13 @@ class RecordModel {
 			}
 		}
 
-		$table_reference = $this->_tableReference;
-		if (isset($sql_params["table_reference"])) {
-			if (is_array($sql_params["table_reference"])) {
-				$table_reference = implode(" ", $sql_params["table_reference"]);
-			} else {
-				$table_reference = $sql_params["table_reference"];
-			}
+		if (is_array($sql_params["table_reference"])) {
+			$table_reference = implode(" ", $sql_params["table_reference"]);
+		} else {
+			$table_reference = $sql_params["table_reference"];
 		}
 
+		$params = array();
 		$where_clause = "1 = 1";
 		if (isset($sql_params["where_cond"])) {
 			$where_cond = $sql_params["where_cond"];
@@ -210,7 +188,7 @@ class RecordModel {
 				foreach (array_values($where_cond) as $value) {
 					if (is_array($value)) {
 						$params = array_merge($params, $value);
-					} else {
+					} else if (!is_null($value)) {
 						array_push($params, $value);
 					}
 				}
@@ -220,17 +198,17 @@ class RecordModel {
 		$sql = array();
 		array_push($sql, "DELETE", $table_names, "FROM", $table_reference, "WHERE", $where_clause);
 
-		$ps = $this->_dbHandler->prepare(implode(" ", $sql));
+		return $this->execSQL(implode(" ", $sql), $params)->rowCount();
+	}
+
+	public function execSQL($sql, $params) {
+		$ps = $this->_dbHandler->prepare($sql);
 		$ps->execute($params);
-		return $ps->rowCount();
+		return $ps;
 	}
 
 	public function getLastInsertID() {
 		return $this->_dbHandler->lastInsertId();
-	}
-
-	public function setTableReference($table_reference) {
-		$this->_tableReference = $table_reference;
 	}
 }
 ?>

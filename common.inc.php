@@ -2,8 +2,8 @@
 require_once("../shdb.inc.php");
 
 class KFFRecordModel extends RecordModel {
-	public function __construct($table_reference = "") {
-		parent::__construct("kff", $table_reference);
+	public function __construct() {
+		parent::__construct("kff");
 	}
 }
 
@@ -55,9 +55,60 @@ class Order extends KFFRecordModel {
 	}
 }
 
-class TblSpecialSN extends KFFRecordModel {
+class MovieWatchSN extends KFFRecordModel {
 	public function __construct() {
-		parent::__construct("tblSpecialSN");
+		parent::__construct();
+	}
+
+	public function initSN() {
+		//
+	}
+
+	public function activateSN($sn_watch_code, $user) {
+		$now = date("Y-m-d H:i:s");
+		$sql_params = array(
+			"table_reference" => "tblMovieWatchSN",
+			"record" => array("sn_status" => 2, "member_account" => $user, "sn_update_time" => $now),
+			"where_cond" => array("sn_watch_code = ?" => $sn_watch_code),
+		);
+
+		$this->update($sql_params);
+	}
+
+	public function disableSN($sn_watch_code) {
+		$now = date("Y-m-d H:i:s");
+		$sql_params = array(
+			"table_reference" => "tblMovieWatchSN",
+			"record" => array("sn_status" => 3, "sn_update_time" => $now),
+			"where_cond" => array("sn_watch_code = ?" => $sn_watch_code),
+		);
+
+		$this->update($sql_params);
+	}
+
+	public function consumeWatchCount($user) {
+		//
+	}
+
+	public function getUserSNInfo($user) {
+		$fields = array("sn_watch_code", "sn_type", "sn_status", "sn_watch_count", "sn_activate_time");
+		$sql_params = array(
+			"fields" => $fields,
+			"table_reference" => "tblMovieWatchSN",
+			"where_cond" => array("member_account = ?" => $user, "sn_status = ?" => 2),
+		);
+
+		$sn_infos = $this->read($sql_params);
+
+		if (count($sn_infos) == 1) {
+			return $sn_infos[0];
+		} else {
+			return array_fill_keys($fields, null);
+		}
+	}
+
+	public function getSNInfo($sn_watch_code) {
+		//
 	}
 
 	public function initTable() {
