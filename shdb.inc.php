@@ -136,8 +136,12 @@ class RecordModel {
 
 		$set_clause = $params = array();
 		foreach ($sql_params["record"] as $key => $value) {
-			array_push($set_clause, "$key = ?");
-			array_push($params, $value);
+			if (is_null($value)) {
+				array_push($set_clause, $key);
+			} else {
+				array_push($set_clause, "$key = ?");
+				array_push($params, $value);
+			}
 		}
 		$set_clause = implode(',', $set_clause);
 
