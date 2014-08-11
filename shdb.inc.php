@@ -47,10 +47,10 @@ class DB {
 }
 
 class RecordModel {
-	public $_dbHandler;
+	public $dbHandler;
 
 	public function __construct($database) {
-		$this->_dbHandler = DB::getPDO($database);
+		$this->dbHandler = DB::getPDO($database);
 	}
 
 	public function create($sql_params) {
@@ -206,13 +206,13 @@ class RecordModel {
 	}
 
 	public function execSQL($sql, $params) {
-		$ps = $this->_dbHandler->prepare($sql);
+		$ps = $this->dbHandler->prepare($sql);
 		$ps->execute($params);
 		return $ps;
 	}
 
 	public function getLastInsertID() {
-		return $this->_dbHandler->lastInsertId();
+		return $this->dbHandler->lastInsertId();
 	}
 }
 ?>

@@ -77,7 +77,7 @@ class MovieWatchSN extends KFFRecordModel {
 		// activate user's new SN
 		$sql_params = array(
 			"table_reference" => "tblMovieWatchSN",
-			"record" => array("sn_status" => 2, "member_account" => $user, "sn_update_time" => $now),
+			"record" => array("sn_status" => 2, "member_account" => $user, "sn_activate_time" => $now, "sn_update_time" => $now),
 			"where_cond" => array("sn_watch_code = ?" => $sn_watch_code),
 		);
 
