@@ -12,46 +12,64 @@ class Order extends KFFRecordModel {
 		parent::__construct();
 	}
 
-	public function createOrder() {
-		try {
-			$this->_dbHandler->beginTransaction();
-			$now = date("Y-m-d H:i:s");
+	public function createOrder($user) {
+		$now = date("Y-m-d H:i:s");
 
-			$this->setTableReference("tblOrder");
-			$record = array(
-				"member_account" => "user1",
-				"order_create_time" => $now,
-				"order_update_time" => $now,
-			);
-			$this->create($record);
-			$order_id = $this->getLastInsertID();
+		$records = array();
+		array_push($records, array($user, $now, $now));
 
-			$this->setTableReference("tblItem");
-			for ($i = 0; $i < mt_rand(1, 5); $i++) {
-				$record = array(
-					"product_id" => mt_rand(1, 2),
-					"order_id" => $order_id,
-					"item_quantity" => mt_rand(1, 10),
-					"item_create_time" => $now,
-					"item_update_time" => $now,
-				);
-				$this->create($record);
-			}
-
-			$this->_dbHandler->commit();
-		} catch (Exception $e) {
-			$this->_dbHandler->rollBack();
-			echo $e->getMessage();
-		}
-	}
-
-	public function readOrder() {
 		$sql_params = array(
-			"fields" => array("a.member_account", "b.order_id", "b.item_id", "b.product_id", "b.item_quantity", "c.product_name", "c.product_price"),
-			"table_reference" => "tblOrder AS a INNER JOIN tblItem AS b USING(order_id) INNER JOIN tblProduct AS c USING(product_id)",
+			"table_reference" => "tblOrder",
+			"fields" => array("member_account", "order_create_time", "order_update_time"),
+			"records" => $records,
 		);
 
-		return $this->read($this->generateReadSQL($sql_params));
+		$this->create($sql_params);
+
+		return $this->getOrder($this->getLastInsertID());
+	}
+
+	public function getOrder($order_id) {
+		$sql_params = array(
+			"fields" => array("*"),
+			"table_reference" => "tblOrder",
+			"where_cond" => array("order_id = ?" => $order_id),
+		);
+
+		$result = $this->read($sql_params);
+
+		if (count($result) == 1) {
+			return $result[0];
+		} else {
+			return null;
+		}
+	}
+}
+
+class Trade extends KFFRecordModel {
+	public function __construct() {
+		parent::__construct();
+	}
+
+	public function createTrade($params) {
+		$now = date("Y-m-d H:i:s");
+
+		$params["trade_create_time"] = $now;
+
+		$records = array();
+		array_push($records, array_values($params));
+
+		$sql_params = array(
+			"table_reference" => "tblTrade",
+			"fields" => array_keys($params),
+			"records" => $records,
+		);
+
+		$this->create($sql_params);
+	}
+
+	public function getTrade($user) {
+		//
 	}
 }
 
@@ -108,7 +126,7 @@ class MovieWatchSN extends KFFRecordModel {
 	}
 
 	public function getUserSNInfo($user) {
-		$fields = array("sn_watch_code", "sn_type", "sn_status", "sn_watch_count", "sn_activate_time");
+		$fields = array("*");
 		$sql_params = array(
 			"fields" => $fields,
 			"table_reference" => "tblMovieWatchSN",

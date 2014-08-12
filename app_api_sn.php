@@ -13,13 +13,29 @@ class RequestGet {
 
 class RequestPost {
 	public function create() {
-		if (isset($_POST["user"], $_POST["type"])) {
+		if (isset($_POST["account"], $_POST["type"])) {
 			try {
 				$mwsn = new MovieWatchSN();
 				$sn_watch_code = $mwsn->generateNewSN($_POST["type"]);
 				$mwsn->createNewSN($sn_watch_code, $_POST["type"]);
-				$mwsn->activateSN($sn_watch_code, $_POST["user"]);
-				echo json_encode($mwsn->getUserSNInfo($_POST["user"]));
+				$mwsn->activateSN($sn_watch_code, $_POST["account"]);
+				echo json_encode($mwsn->getUserSNInfo($_POST["account"]));
+			} catch (PDOException $e) {
+				echo json_encode(array("status" => "fail", "error_msg" => $e->getMessage()));
+			}
+		}
+	}
+
+	public function activate() {
+		if (isset($_POST["account"], $_POST["sn"])) {
+			try {
+				$mwsn = new MovieWatchSN();
+				if ($mwsn->isSNActivated($sn)) {
+					echo json_encode(array("status" => "fail", "error_msg" => "無效序號"));
+				} else {
+					$mwsn->activateSN($sn, $_POST["account"]);
+					echo json_encode($mwsn->getUserSNInfo($_POST["account"]));
+				}
 			} catch (PDOException $e) {
 				echo json_encode(array("status" => "fail", "error_msg" => $e->getMessage()));
 			}
