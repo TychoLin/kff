@@ -26,7 +26,18 @@ class Order extends KFFRecordModel {
 
 		$this->create($sql_params);
 
-		return $this->getOrder($this->getLastInsertID());
+		$order_id = $this->getLastInsertID();
+
+		$order_no = "KFF".date("Ymd").$order_id;
+		$sql_params = array(
+			"table_reference" => "tblOrder",
+			"record" => array("order_no" => $order_no),
+			"where_cond" => array("order_id = ?" => $order_id),
+		);
+
+		$this->update($sql_params);
+
+		return $order_id;
 	}
 
 	public function getOrder($order_id) {
@@ -44,9 +55,32 @@ class Order extends KFFRecordModel {
 			return null;
 		}
 	}
+
+	public function getUserOrder($user) {
+		$sql_params = array(
+			"fields" => array("*"),
+			"table_reference" => "tblOrder",
+			"where_cond" => array("member_account = ?" => $user),
+		);
+
+		return $this->read($sql_params);
+	}
+
+	public function makeOrderPaid($order_id, $sn_id) {
+		$now = date("Y-m-d H:i:s");
+		$sql_params = array(
+			"table_reference" => "tblOrder",
+			"record" => array("order_status" => 2, "order_product_sn_id" => $sn_id, "order_update_time" => $now),
+			"where_cond" => array("order_id = ?" => $order_id),
+		);
+
+		$this->update($sql_params);
+	}
 }
 
 class Trade extends KFFRecordModel {
+	private $_tradeProviderList = array(1 => "allpay", 2 => "android", 3 => "ios");
+
 	public function __construct() {
 		parent::__construct();
 	}
@@ -69,7 +103,21 @@ class Trade extends KFFRecordModel {
 	}
 
 	public function getTrade($user) {
-		//
+		$sql_params = array(
+			"fields" => array("a.*", "b.order_status"),
+			"table_reference" => "tblTrade AS a INNER JOIN tblOrder AS b USING (order_id)",
+			"where_cond" => array("b.member_account = ?" => $user),
+		);
+
+		return $this->read($sql_params);
+	}
+
+	public function isAllowedProvider($trade_provider) {
+		return in_array($trade_provider, array_keys($this->_tradeProviderList));
+	}
+
+	public function isMobileProvider($trade_provider) {
+		return in_array($trade_provider, array(2, 3));
 	}
 }
 
@@ -126,9 +174,8 @@ class MovieWatchSN extends KFFRecordModel {
 	}
 
 	public function getUserSNInfo($user) {
-		$fields = array("*");
 		$sql_params = array(
-			"fields" => $fields,
+			"fields" => array("*"),
 			"table_reference" => "tblMovieWatchSN",
 			"where_cond" => array("member_account = ?" => $user, "sn_status = ?" => 2),
 		);
@@ -203,6 +250,8 @@ class MovieWatchSN extends KFFRecordModel {
 		);
 
 		$this->create($sql_params);
+
+		return $this->getLastInsertID();
 	}
 
 	public function generateNewSN($sn_type) {
@@ -219,6 +268,10 @@ class MovieWatchSN extends KFFRecordModel {
 		} while(true);
 
 		return $sn_watch_code;
+	}
+
+	public function isAllowedSNType($sn_type) {
+		return in_array($sn_type, array_keys($this->_SNTypeList));
 	}
 
 	private function generateSNCode() {
