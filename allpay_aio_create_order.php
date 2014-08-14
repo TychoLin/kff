@@ -27,8 +27,8 @@ try {
 
 	ksort($data);
 	$query = "HashKey=5294y06JbISpM5x9&".urldecode(http_build_query($data))."&HashIV=v77hoKGq4kWxNNIS";
-	$data["CheckMacValue"] = md5(strtolower(urlencode($query)));
-} catch (Exception $e) {
+	$data["CheckMacValue"] = strtoupper(md5(strtolower(urlencode($query))));
+} catch (PDOException $e) {
 	echo $e-getMessage();
 	exit();
 }

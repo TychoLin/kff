@@ -47,16 +47,14 @@ class RequestPost {
 						"payment_time" => $now,
 					);
 					$trade->createTrade($params);
-				} else {
-					// allpay flow
 				}
 			}
 
 			$mwsn->dbHandler->commit();
 			echo json_encode(array("status" => "success", "sn" => $sn_watch_code));
 		} catch (PDOException $e) {
-			echo json_encode(array("status" => "fail", "error_msg" => $e->getMessage()));
 			$mwsn->dbHandler->rollBack();
+			echo json_encode(array("status" => "fail", "error_msg" => $e->getMessage()));
 		}
 	}
 

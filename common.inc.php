@@ -66,6 +66,22 @@ class Order extends KFFRecordModel {
 		return $this->read($sql_params);
 	}
 
+	public function getOrderNoOrder($order_no) {
+		$sql_params = array(
+			"fields" => array("*"),
+			"table_reference" => "tblOrder",
+			"where_cond" => array("order_no = ?" => $order_no),
+		);
+
+		$result = $this->read($sql_params);
+
+		if (count($result) == 1) {
+			return $result[0];
+		} else {
+			return null;
+		}
+	}
+
 	public function makeOrderPaid($order_id, $sn_id) {
 		$now = date("Y-m-d H:i:s");
 		$sql_params = array(
@@ -104,9 +120,9 @@ class Trade extends KFFRecordModel {
 
 	public function getTrade($user) {
 		$sql_params = array(
-			"fields" => array("a.*", "b.order_status"),
+			"fields" => array("a.*"),
 			"table_reference" => "tblTrade AS a INNER JOIN tblOrder AS b USING (order_id)",
-			"where_cond" => array("b.member_account = ?" => $user),
+			"where_cond" => array("b.member_account = ?" => $user, "b.order_status = ?" => 2),
 		);
 
 		return $this->read($sql_params);
