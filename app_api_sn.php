@@ -13,6 +13,15 @@ class RequestGet {
 			}
 		}
 	}
+
+	public function report() {
+		try {
+			$mwsn = new MovieWatchSN();
+			echo json_encode(array("status" => "success", "report" => $mwsn->getActivatedSNReport()));
+		} catch (PDOException $e) {
+			echo json_encode(array("status" => "fail", "error_msg" => $e->getMessage()));
+		}
+	}
 }
 
 class RequestPost {
@@ -30,28 +39,26 @@ class RequestPost {
 			$sn_id = $mwsn->createNewSN($sn_watch_code, $sn_type);
 
 			$trade = new Trade();
-			if (isset($_POST["account"], $_POST["provider"]) && $sn_type == 2 && $trade->isAllowedProvider($_POST["provider"])) {
+			if (isset($_POST["account"], $_POST["provider"]) && $sn_type == 2 && $trade->isMobileProvider($_POST["provider"])) {
 				$mwsn->activateSN($sn_watch_code, $_POST["account"]);
 
 				$now = date("Y-m-d H:i:s");
-				if ($trade->isMobileProvider($_POST["provider"])) {
-					$order = new Order();
-					$order_id = $order->createOrder($_POST["account"]);
-					$order->makeOrderPaid($order_id, $sn_id);
+				$order = new Order();
+				$order_id = $order->createOrder($_POST["account"]);
+				$order->makeOrderPaid($order_id, $sn_id);
 
-					$params = array(
-						"order_id" => $order_id,
-						"trade_provider" => $_POST["provider"],
-						"trade_status" => 1,
-						"trade_amount" => 180,
-						"payment_time" => $now,
-					);
-					$trade->createTrade($params);
-				}
+				$params = array(
+					"order_id" => $order_id,
+					"trade_provider" => $_POST["provider"],
+					"trade_status" => 1,
+					"trade_amount" => 180,
+					"payment_time" => $now,
+				);
+				$trade->createTrade($params);
 			}
 
 			$mwsn->dbHandler->commit();
-			echo json_encode(array("status" => "success", "sn" => $sn_watch_code));
+			echo json_encode(array("status" => "success", "sn" => $mwsn->getSNInfo($sn_watch_code)));
 		} catch (PDOException $e) {
 			$mwsn->dbHandler->rollBack();
 			echo json_encode(array("status" => "fail", "error_msg" => $e->getMessage()));
@@ -62,10 +69,29 @@ class RequestPost {
 		if (isset($_POST["account"], $_POST["sn"])) {
 			try {
 				$mwsn = new MovieWatchSN();
-				if ($mwsn->isSNActivated($_POST["sn"])) {
-					echo json_encode(array("status" => "fail", "error_msg" => "無效序號"));
+				if ($mwsn->isSNNotActivated($_POST["sn"])) {
+					if ($mwsn->isSNFree($_POST["sn"]) && $mwsn->hasFreeSN($_POST["account"])) {
+						echo json_encode(array("status" => "fail", "error_msg" => "已使用過免費序號"));
+					} else {
+						$mwsn->activateSN($_POST["sn"], $_POST["account"]);
+						echo json_encode(array("status" => "success", "sn" => $mwsn->getUserSNInfo($_POST["account"])));
+					}
 				} else {
-					$mwsn->activateSN($_POST["sn"], $_POST["account"]);
+					echo json_encode(array("status" => "fail", "error_msg" => "無效序號"));
+				}
+			} catch (PDOException $e) {
+				echo json_encode(array("status" => "fail", "error_msg" => $e->getMessage()));
+			}
+		}
+	}
+
+	public function consumeCount() {
+		if (isset($_POST["account"], $_POST["sn"])) {
+			try {
+				$mwsn = new MovieWatchSN();
+				$sn_info = $mwsn->getUserSNInfo($_POST["account"]);
+				if (!is_null($sn_info) && $sn_info["sn_watch_code"] == $_POST["sn"] && $sn_info["sn_type"] == 3) {
+					$mwsn->consumeWatchCount($_POST["sn"]);
 					echo json_encode(array("status" => "success", "sn" => $mwsn->getUserSNInfo($_POST["account"])));
 				}
 			} catch (PDOException $e) {

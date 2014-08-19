@@ -182,7 +182,7 @@ class MovieWatchSN extends KFFRecordModel {
 
 		$sql_params = array(
 			"table_reference" => "tblMovieWatchSN",
-			"record" => array("sn_watch_count = IF(sn_watch_count = 0, 0, sn_watch_count - 1)" => null, "sn_update_time" => $now),
+			"record" => array("sn_watch_count = IF(sn_watch_count <= 0, sn_watch_count, sn_watch_count - 1)" => null, "sn_update_time" => $now),
 			"where_cond" => array("sn_watch_code = ?" => $sn_watch_code),
 		);
 
@@ -209,7 +209,7 @@ class MovieWatchSN extends KFFRecordModel {
 		$sql_params = array(
 			"fields" => array("*"),
 			"table_reference" => "tblMovieWatchSN",
-			"where_cond" => array("sn_watch_code = ?" => $sn_watch_code, "sn_status != ?" => 3),
+			"where_cond" => array("sn_watch_code = ?" => $sn_watch_code),
 		);
 
 		$result = $this->read($sql_params);
@@ -221,14 +221,43 @@ class MovieWatchSN extends KFFRecordModel {
 		}
 	}
 
-	public function isSNActivated($sn_watch_code) {
+	public function getActivatedSNReport() {
+		$sql_params = array(
+			"fields" => array("sn_type, COUNT(*) AS activated_amount"),
+			"table_reference" => "tblMovieWatchSN",
+			"where_cond" => array("sn_status = ?" => 2),
+			"group_by_clause" => "sn_type",
+		);
+
+		return $this->read($sql_params);
+	}
+
+	public function isSNNotActivated($sn_watch_code) {
 		$sn_info = $this->getSNInfo($sn_watch_code);
 
 		if (is_null($sn_info)) {
 			return null;
 		}
 
-		return ($sn_info["sn_status"] == 2) ? true : false;
+		return ($sn_info["sn_status"] == 1) ? true : false;
+	}
+
+	public function isSNFree($sn_watch_code) {
+		$sn_info = $this->getSNInfo($sn_watch_code);
+
+		return ($sn_info["sn_type"] == 3) ? true : false;
+	}
+
+	public function hasFreeSN($user) {
+		$sql_params = array(
+			"fields" => array("sn_id"),
+			"table_reference" => "tblMovieWatchSN",
+			"where_cond" => array("member_account = ?" => $user, "sn_type = ?" => 3),
+		);
+
+		$result = $this->read($sql_params);
+
+		return (count($result) > 0) ? true : false;
 	}
 
 	public function initSN() {
