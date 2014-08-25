@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS `tblMovieWatchSN` (
 DROP TABLE IF EXISTS `tblOrder`;
 CREATE TABLE IF NOT EXISTS `tblOrder` (
   `order_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `order_no` varchar(20) NOT NULL,
   `member_account` varchar(128) NOT NULL,
   `order_status` int(10) unsigned NOT NULL DEFAULT '1' COMMENT '1: not paid, 2: paid',
   `order_product_sn_id` int(10) unsigned DEFAULT NULL,
@@ -48,13 +49,15 @@ DROP TABLE IF EXISTS `tblTrade`;
 CREATE TABLE IF NOT EXISTS `tblTrade` (
   `trade_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `order_id` int(10) unsigned NOT NULL,
-  `trade_provider` int(10) NOT NULL COMMENT '1: allpay, 2: android, 3: ios',
+  `trade_provider` int(10) unsigned NOT NULL COMMENT '1: allpay, 2: android, 3: ios',
   `trade_no` varchar(20) NOT NULL,
-  `trade_status` int(10) NOT NULL,
+  `trade_status` int(10) unsigned NOT NULL COMMENT '1: succeed, others: fail',
   `trade_msg` varchar(200) NOT NULL,
   `trade_amount` int(10) unsigned NOT NULL,
   `payment_type` varchar(20) NOT NULL,
+  `payment_charge_fee` int(10) unsigned NOT NULL,
   `payment_time` datetime NOT NULL,
+  `simulate_paid` int(10) unsigned NOT NULL DEFAULT '0',
   `trade_create_time` datetime NOT NULL,
   PRIMARY KEY (`trade_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
