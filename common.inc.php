@@ -1,5 +1,5 @@
 <?php
-require_once("shdb.inc.php");
+require_once("db.inc.php");
 
 class KFFRecordModel extends RecordModel {
 	public function __construct() {

@@ -92,21 +92,7 @@ class RecordModel {
 			$table_reference = $sql_params["table_reference"];
 		}
 
-		$where_clause = "1 = 1";
-		if (isset($sql_params["where_cond"])) {
-			$where_cond = $sql_params["where_cond"];
-			if (is_array($where_cond) && count($where_cond) > 0) {
-				$where_clause = implode(" AND ", array_keys($where_cond));
-
-				foreach (array_values($where_cond) as $value) {
-					if (is_array($value)) {
-						$params = array_merge($params, $value);
-					} else if (!is_null($value)) {
-						array_push($params, $value);
-					}
-				}
-			}
-		}
+		$where_clause = $this->getWhereClause($sql_params, $params);
 
 		$sql = array();
 		array_push($sql, "SELECT", $fields, "FROM", $table_reference, "WHERE", $where_clause);
@@ -145,21 +131,7 @@ class RecordModel {
 		}
 		$set_clause = implode(',', $set_clause);
 
-		$where_clause = "1 = 1";
-		if (isset($sql_params["where_cond"])) {
-			$where_cond = $sql_params["where_cond"];
-			if (is_array($where_cond) && count($where_cond) > 0) {
-				$where_clause = implode(" AND ", array_keys($where_cond));
-				
-				foreach (array_values($where_cond) as $value) {
-					if (is_array($value)) {
-						$params = array_merge($params, $value);
-					} else if (!is_null($value)) {
-						array_push($params, $value);
-					}
-				}
-			}
-		}
+		$where_clause = $this->getWhereClause($sql_params, $params);
 
 		$sql = array();
 		array_push($sql, "UPDATE", $table_reference, "SET", $set_clause, "WHERE", $where_clause);
@@ -183,6 +155,25 @@ class RecordModel {
 		}
 
 		$params = array();
+		$where_clause = $this->getWhereClause($sql_params, $params);
+
+		$sql = array();
+		array_push($sql, "DELETE", $table_names, "FROM", $table_reference, "WHERE", $where_clause);
+
+		return $this->execSQL(implode(" ", $sql), $params)->rowCount();
+	}
+
+	public function execSQL($sql, $params) {
+		$ps = $this->dbHandler->prepare($sql);
+		$ps->execute($params);
+		return $ps;
+	}
+
+	public function getLastInsertID() {
+		return $this->dbHandler->lastInsertId();
+	}
+
+	private function getWhereClause($sql_params, &$params) {
 		$where_clause = "1 = 1";
 		if (isset($sql_params["where_cond"])) {
 			$where_cond = $sql_params["where_cond"];
@@ -199,20 +190,7 @@ class RecordModel {
 			}
 		}
 
-		$sql = array();
-		array_push($sql, "DELETE", $table_names, "FROM", $table_reference, "WHERE", $where_clause);
-
-		return $this->execSQL(implode(" ", $sql), $params)->rowCount();
-	}
-
-	public function execSQL($sql, $params) {
-		$ps = $this->dbHandler->prepare($sql);
-		$ps->execute($params);
-		return $ps;
-	}
-
-	public function getLastInsertID() {
-		return $this->dbHandler->lastInsertId();
+		return $where_clause;
 	}
 }
 ?>
