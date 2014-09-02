@@ -10,6 +10,19 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
+-- Dumping structure for table kff.tblMovie
+DROP TABLE IF EXISTS `tblMovie`;
+CREATE TABLE IF NOT EXISTS `tblMovie` (
+  `movie_no` varchar(16) NOT NULL,
+  `movie_watch_count` int(10) unsigned NOT NULL DEFAULT '1',
+  `movie_create_time` datetime NOT NULL,
+  `movie_update_time` datetime NOT NULL,
+  PRIMARY KEY (`movie_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Data exporting was unselected.
+
+
 -- Dumping structure for table kff.tblMovieWatchSN
 DROP TABLE IF EXISTS `tblMovieWatchSN`;
 CREATE TABLE IF NOT EXISTS `tblMovieWatchSN` (

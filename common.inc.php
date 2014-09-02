@@ -120,7 +120,7 @@ class Trade extends KFFRecordModel {
 
 	public function getTrade($user) {
 		$sql_params = array(
-			"fields" => array("a.*"),
+			"fields" => array("a.*", "b.order_no"),
 			"table_reference" => "tblTrade AS a INNER JOIN tblOrder AS b USING (order_id)",
 			"where_cond" => array("b.member_account = ?" => $user, "b.order_status = ?" => 2),
 		);
@@ -340,6 +340,61 @@ class MovieWatchSN extends KFFRecordModel {
 		}
 
 		return $sn;
+	}
+}
+
+class Movie extends KFFRecordModel {
+	public function __construct() {
+		parent::__construct();
+	}
+
+	public function getMovieInfo($movie_no) {
+		$sql_params = array(
+			"fields" => array("*"),
+			"table_reference" => "tblMovie",
+			"where_cond" => array("movie_no = ?" => $movie_no),
+		);
+
+		$result = $this->read($sql_params);
+
+		if (count($result) == 1) {
+			return $result[0];
+		} else {
+			return null;
+		}
+	}
+
+	public function createMovie($movie_no) {
+		$now = date("Y-m-d H:i:s");
+
+		$records = array();
+		array_push($records, array($movie_no, $now, $now));
+
+		$sql_params = array(
+			"table_reference" => "tblMovie",
+			"fields" => array("movie_no", "movie_create_time", "movie_update_time"),
+			"records" => $records,
+		);
+
+		$this->create($sql_params);
+	}
+
+	public function accumulateWatchCount($movie_no) {
+		$now = date("Y-m-d H:i:s");
+
+		$sql_params = array(
+			"table_reference" => "tblMovie",
+			"record" => array("movie_watch_count = movie_watch_count + 1" => null, "movie_update_time" => $now),
+			"where_cond" => array("movie_no = ?" => $movie_no),
+		);
+
+		$this->update($sql_params);
+	}
+
+	public function isMovieExisted($movie_no) {
+		$movie_info = $this->getMovieInfo($movie_no);
+
+		return is_null($movie_info) ? false : true;
 	}
 }
 ?>
