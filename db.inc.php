@@ -74,7 +74,14 @@ class RecordModel {
 			$duplicate_clause = $sql_params["duplicate_clause"];
 			if (is_array($duplicate_clause) && count($duplicate_clause) > 0) {
 				array_push($sql, "ON DUPLICATE KEY UPDATE", implode(",", array_keys($duplicate_clause)));
-				$params = array_merge($params, array_values($duplicate_clause));
+				
+				foreach (array_values($duplicate_clause) as $value) {
+					if (is_array($value)) {
+						$params = array_merge($params, $value);
+					} else if (!is_null($value)) {
+						array_push($params, $value);
+					}
+				}
 			}
 		}
 

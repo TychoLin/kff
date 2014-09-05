@@ -223,13 +223,13 @@ class MovieWatchSN extends KFFRecordModel {
 
 	public function getActivatedSNReport() {
 		$sql_params = array(
-			"fields" => array("sn_type, COUNT(*) AS activated_amount"),
+			"fields" => array("member_account", "sn_watch_code", "sn_activate_time"),
 			"table_reference" => "tblMovieWatchSN",
 			"where_cond" => array("sn_status = ?" => 2),
-			"group_by_clause" => "sn_type",
+			"order_by_clause" => "sn_type ASC, sn_activate_time DESC",
 		);
 
-		return $this->read($sql_params);
+		return $this->read($sql_params, PDO::FETCH_NUM);
 	}
 
 	public function isSNNotActivated($sn_watch_code) {

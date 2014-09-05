@@ -15,6 +15,8 @@ class RequestPost {
 				} else {
 					$movie->createMovie($_POST["movie_no"]);
 				}
+
+				echo json_encode(array("status" => "success"));
 			} catch (PDOException $e) {
 				echo json_encode(array("status" => "fail", "error_msg" => $e->getMessage()));
 			}
