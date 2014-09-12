@@ -138,7 +138,7 @@ class Trade extends KFFRecordModel {
 }
 
 class MovieWatchSN extends KFFRecordModel {
-	private $_SNTypeList = array(1 => "A", 2 => "B", 3 => "C");
+	private $_SNTypeList = array(1 => "A", 2 => "B", 3 => "C", 4 => "D");
 
 	public function __construct() {
 		parent::__construct();
