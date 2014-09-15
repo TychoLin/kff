@@ -4,13 +4,15 @@ require_once("ApiControl.class.php");
 
 class RequestGet {
 	public function index() {
-		if (isset($_GET["sn"])) {
-			try {
-				$mwsn = new MovieWatchSN();
+		try {
+			$mwsn = new MovieWatchSN();
+			if (isset($_GET["account"])) {
+				echo json_encode(array("status" => "success", "sn" => $mwsn->getUserSNInfo($_GET["account"])));
+			} else if (isset($_GET["sn"])) {
 				echo json_encode(array("status" => "success", "sn" => $mwsn->getSNInfo($_GET["sn"])));
-			} catch (PDOException $e) {
-				echo json_encode(array("status" => "fail", "error_msg" => $e->getMessage()));
 			}
+		} catch (PDOException $e) {
+			echo json_encode(array("status" => "fail", "error_msg" => $e->getMessage()));
 		}
 	}
 
