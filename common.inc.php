@@ -397,4 +397,94 @@ class Movie extends KFFRecordModel {
 		return is_null($movie_info) ? false : true;
 	}
 }
+
+class Member extends KFFRecordModel {
+	public function __construct() {
+		parent::__construct();
+	}
+
+	public function getMember($where_cond) {
+		$sql_params = array(
+			"fields" => array("*"),
+			"table_reference" => "member",
+			"where_cond" => $where_cond,
+		);
+
+		return $this->read($sql_params);
+	}
+
+	public function createMember($email, $pw) {
+		$records = array();
+		$data = array("member_account" => $email, "member_password" => md5($pw));
+		array_push($records, array_values($data));
+
+		$sql_params = array(
+			"table_reference" => "member",
+			"fields" => array_keys($data),
+			"records" => $records,
+		);
+
+		$this->create($sql_params);
+
+		return $this->getLastInsertID();
+	}
+
+	public function updateMember($email, $pw) {
+		$sql_params = array(
+			"table_reference" => "member",
+			"record" => array("member_password" => md5($pw)),
+			"where_cond" => array("member_account = ?" => $email),
+		);
+
+		$this->update($sql_params);
+	}
+
+	public function isMemberExisted($email) {
+		$result = $this->getMember(array("member_account = ?" => $email));
+
+		return (count($result) > 0) ? true : false;
+	}
+
+	public function login($email, $pw) {
+		$where_cond = array(
+			"member_account = ?" => $email,
+			"member_password = ?" => md5($pw),
+		);
+		$result = $this->getMember($where_cond);
+
+		if (count($result) == 1) {
+			$member_info = $result[0];
+			$_SESSION["member_account"] = $member_info["member_account"];
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public function logout() {
+		$_SESSION = array();
+		if (ini_get("session.use_cookies")) {
+			$params = session_get_cookie_params();
+			setcookie(session_name(), '', time() - 42000, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
+		}
+
+		session_destroy();
+		// header("Location: index.php");
+		// exit();
+	}
+
+	public function isLogined() {
+		if (isset($_SESSION) && count($_SESSION) > 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public function validate_email($email) {
+		$pattern = "/^[\w]+[\.\w-_]{2,}@([\w-]+\.)+[a-zA-Z]{2,7}$/";
+
+		return (preg_match($pattern, $email) == 1) ? true : false;
+	}
+}
 ?>
