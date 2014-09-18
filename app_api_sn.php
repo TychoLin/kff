@@ -72,11 +72,30 @@ class RequestPost {
 			try {
 				$mwsn = new MovieWatchSN();
 				if ($mwsn->isSNNotActivated($_POST["sn"])) {
-					if ($mwsn->isSNFree($_POST["sn"]) && $mwsn->hasFreeSN($_POST["account"])) {
-						echo json_encode(array("status" => "fail", "error_msg" => "已使用過免費序號"));
-					} else {
+					$new_sn_info = $mwsn->getSNInfo($_POST["sn"]);
+					$user_sn_info = $mwsn->getUserSNInfo($_POST["account"]);
+					
+					if (is_null($user_sn_info)) {
 						$mwsn->activateSN($_POST["sn"], $_POST["account"]);
 						echo json_encode(array("status" => "success", "sn" => $mwsn->getUserSNInfo($_POST["account"])));
+					} else {
+						if ($user_sn_info["sn_type"] == 4) {
+							echo json_encode(array("status" => "fail", "error_msg" => "你已經無敵了"));
+						} else if (in_array($user_sn_info["sn_type"], array(1, 2))) {
+							if ($new_sn_info["sn_type"] == 4) {
+								$mwsn->activateSN($_POST["sn"], $_POST["account"]);
+								echo json_encode(array("status" => "success", "sn" => $mwsn->getUserSNInfo($_POST["account"])));
+							} else {
+								echo json_encode(array("status" => "fail", "error_msg" => "你已經付費了"));
+							}
+						} else if ($user_sn_info["sn_type"] == 3) {
+							if ($new_sn_info["sn_type"] != 3) {
+								$mwsn->activateSN($_POST["sn"], $_POST["account"]);
+								echo json_encode(array("status" => "success", "sn" => $mwsn->getUserSNInfo($_POST["account"])));
+							} else {
+								echo json_encode(array("status" => "fail", "error_msg" => "你已經使用過免費序號"));
+							}
+						}
 					}
 				} else {
 					echo json_encode(array("status" => "fail", "error_msg" => "無效序號"));
