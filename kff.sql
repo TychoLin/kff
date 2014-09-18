@@ -10,6 +10,17 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
+-- Dumping structure for table kff.member
+DROP TABLE IF EXISTS `member`;
+CREATE TABLE IF NOT EXISTS `member` (
+  `member_account` varchar(128) NOT NULL,
+  `member_password` varchar(48) NOT NULL,
+  PRIMARY KEY (`member_account`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+-- Data exporting was unselected.
+
+
 -- Dumping structure for table kff.tblMovie
 DROP TABLE IF EXISTS `tblMovie`;
 CREATE TABLE IF NOT EXISTS `tblMovie` (
@@ -29,7 +40,7 @@ CREATE TABLE IF NOT EXISTS `tblMovieWatchSN` (
   `sn_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `member_account` varchar(128) NOT NULL COMMENT 'email format',
   `sn_watch_code` varchar(10) NOT NULL,
-  `sn_type` int(10) unsigned NOT NULL COMMENT '1: all films ticket, 2: all films user pay ticket, 3: three films ticket',
+  `sn_type` int(10) unsigned NOT NULL COMMENT '1: all films ticket, 2: all films user pay ticket, 3: three films ticket, 4: power ticket',
   `sn_status` int(10) unsigned NOT NULL COMMENT '1: not activated, 2: activated, 3: disabled',
   `sn_watch_count` int(10) NOT NULL COMMENT '-1: unlimited',
   `sn_activate_time` datetime DEFAULT NULL,
