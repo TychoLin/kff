@@ -61,9 +61,27 @@ if (count($post_data) == count($filtered_fields) && verify_checkmacvalue($post_d
 
 		// mail kff sn to user email
 		$to = $order_info["member_account"];
-		$subject = "KFF SN";
-		$message = "SN: $sn_watch_code";
-		$header = "From: service@dcview.com\r\n";
+		$subject = "<2014高雄電影節>付款成功通知(*系統自動發送,請勿直接回覆!)";
+		$message =
+			"親愛的雄影之友,您好:<br>".
+			"<br>".
+			"感謝您購買《2014雄影雲端戲院》APP!<br>".
+			"您的使用序號: XXXXXX<br>".
+			"<br>".
+			"此序號必須先下載《2014雄影雲端戲院》APP!,請至《<a href=\"http://www.kff.tw/app/\">2014雄影雲端戲院</a>》選<br>".
+			"擇您手機對應的版本進行下載,開啟APP→至【主選單--輸入序號】→填寫帳號<br>".
+			"/密碼登入→輸入序號,即可在2014/10/24-11/9期間內,於APP內線上觀看精選<br>".
+			"百部影片。<br>".
+			"<br>".
+			"※此封信件為系統發出的信件,請勿直接回覆!若您仍有問題,詳情流程請參閱<br>".
+			"2014高雄電影節《<a href=\"http://www.kff.tw/app/\">2014雄影雲端戲院</a>》專屬網頁,或洽請撥打客服專線0974-191-<br>".
+			"501(09:00~21:00),謝謝!<br>".
+			"<br>".
+			"2014高雄電影節 敬上<br>";
+		$header =
+			"MIME-Version: 1.0\r\n".
+			"Content-type: text/html; charset=utf-8\r\n".
+			"From: kfa@kfa.gov.tw\r\n";
 		mail($to, $subject, $message, $header);
 
 		// allpay response message
