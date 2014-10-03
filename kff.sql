@@ -15,8 +15,24 @@ DROP TABLE IF EXISTS `member`;
 CREATE TABLE IF NOT EXISTS `member` (
   `member_account` varchar(128) NOT NULL,
   `member_password` varchar(48) NOT NULL,
+  `ios_uuid` varchar(36) NOT NULL,
   PRIMARY KEY (`member_account`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+-- Data exporting was unselected.
+
+
+-- Dumping structure for table kff.tblAppOpLog
+DROP TABLE IF EXISTS `tblAppOpLog`;
+CREATE TABLE IF NOT EXISTS `tblAppOpLog` (
+  `appoplog_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `member_account` varchar(128) NOT NULL COMMENT 'dummy: user not login',
+  `op_status` char(1) NOT NULL COMMENT 'P: playing, B: browsing',
+  `device_id` varchar(36) NOT NULL,
+  `device_city` varchar(32) NOT NULL,
+  `op_create_time` datetime NOT NULL,
+  PRIMARY KEY (`appoplog_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Data exporting was unselected.
 

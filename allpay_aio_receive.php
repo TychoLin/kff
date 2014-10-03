@@ -66,7 +66,7 @@ if (count($post_data) == count($filtered_fields) && verify_checkmacvalue($post_d
 			"親愛的雄影之友,您好:<br>".
 			"<br>".
 			"感謝您購買《2014雄影雲端戲院》APP!<br>".
-			"您的使用序號: XXXXXX<br>".
+			"您的使用序號: $sn_watch_code<br>".
 			"<br>".
 			"此序號必須先下載《2014雄影雲端戲院》APP!,請至《<a href=\"http://www.kff.tw/app/\">2014雄影雲端戲院</a>》選<br>".
 			"擇您手機對應的版本進行下載,開啟APP→至【主選單--輸入序號】→填寫帳號<br>".

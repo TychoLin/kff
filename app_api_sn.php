@@ -80,7 +80,7 @@ class RequestPost {
 						echo json_encode(array("status" => "success", "sn" => $mwsn->getUserSNInfo($_POST["account"])));
 					} else {
 						if ($user_sn_info["sn_type"] == 4) {
-							echo json_encode(array("status" => "fail", "error_msg" => "你已經無敵了"));
+							echo json_encode(array("status" => "fail", "error_msg" => "你已經可以觀看影片了"));
 						} else if (in_array($user_sn_info["sn_type"], array(1, 2))) {
 							if ($new_sn_info["sn_type"] == 4) {
 								$mwsn->activateSN($_POST["sn"], $_POST["account"]);

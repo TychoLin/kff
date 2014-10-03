@@ -263,7 +263,7 @@ class MovieWatchSN extends KFFRecordModel {
 	public function initSN() {
 		$sn_list = array();
 
-		for ($i = 0; $i < 5500; $i++) {
+		for ($i = 0; $i < 50; $i++) {
 			do {
 				$sn_watch_code = "A".$this->generateSNCode();
 			} while (in_array($sn_watch_code, $sn_list));
@@ -273,17 +273,17 @@ class MovieWatchSN extends KFFRecordModel {
 			$this->createNewSN($sn_watch_code, 1);
 		}
 
-		$sn_list = array();
+		// $sn_list = array();
 		
-		for ($i = 0; $i < 200000; $i++) {
-			do {
-				$sn_watch_code = "C".$this->generateSNCode();
-			} while (in_array($sn_watch_code, $sn_list));
+		// for ($i = 0; $i < 200000; $i++) {
+		// 	do {
+		// 		$sn_watch_code = "C".$this->generateSNCode();
+		// 	} while (in_array($sn_watch_code, $sn_list));
 
-			array_push($sn_list, $sn_watch_code);
+		// 	array_push($sn_list, $sn_watch_code);
 
-			$this->createNewSN($sn_watch_code, 3);
-		}
+		// 	$this->createNewSN($sn_watch_code, 3);
+		// }
 	}
 
 	public function createNewSN($sn_watch_code, $sn_type) {
